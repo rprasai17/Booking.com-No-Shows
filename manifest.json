@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Click Automator",
+    "version": "1.0",
+    "description": "Automates sequential clicks on specific website elements",
+    "permissions": ["activeTab", "scripting", "sidePanel"],
+    "action": {
+      "default_title": "Click Automator"
+    },
+    "side_panel": {
+      "default_path": "sidepanel.html"
+    },
+    "background": {
+      "service_worker": "background.js"
+    }
+  }
+  
