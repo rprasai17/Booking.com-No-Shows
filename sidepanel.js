@@ -94,7 +94,6 @@ document.getElementById('automateButton').addEventListener('click', async () => 
           const element = context.querySelector(selector);
           if (element && element.offsetParent !== null) {
             console.log(`Found element: ${selector}`);
-            // Add a small delay after finding element to ensure it's fully interactive
             await delay(300);
             return element;
           }
@@ -112,11 +111,28 @@ document.getElementById('automateButton').addEventListener('click', async () => 
       };
   
       try {
-        // Check for exclusions
+        // First check for the specific span text
+        const chargedSpan = document.evaluate(
+          "//span[contains(text(), 'You successfully charged the total amount on this card')]",
+          document,
+          null,
+          XPathResult.FIRST_ORDERED_NODE_TYPE,
+          null
+        ).singleNodeValue;
+  
+        if (chargedSpan) {
+          console.log('Found successful charge text');
+          resolve({ 
+            status: 'paid',
+            reason: 'Payment already charged'
+          });
+          return;
+        }
+  
+        // Then check for other exclusion texts
         const exclusionTexts = [
           'Virtual credit card',
           'Virtual card balance',
-          'You have successfully charged the total amount on this card',
           'The guest has paid for this reservation online'
         ];
   
