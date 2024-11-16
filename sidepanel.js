@@ -85,128 +85,181 @@ document.getElementById('automateButton').addEventListener('click', async () => 
     return new Promise(async (resolve, reject) => {
       const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
       
-      // Enhanced element waiting function with logging
-      const waitForElement = async (selector, context = document, timeout = 5000) => {
+      // Debug function to log page state
+      const logPageState = () => {
+        console.log('Current page state:');
+        console.log('URL:', window.location.href);
+        console.log('All buttons on page:', document.querySelectorAll('button').length);
+        console.log('Page content:', document.body.innerHTML);
+        console.log('Viewport size:', window.innerWidth, window.innerHeight);
+        console.log('Document ready state:', document.readyState);
+      };
+  
+      // Enhanced element waiting with mutation observer
+      const waitForElement = (selector, context = document, timeout = 15000) => {
         console.log(`Waiting for element: ${selector}`);
-        const startTime = Date.now();
-        
-        while (Date.now() - startTime < timeout) {
+        return new Promise((resolve) => {
+          // First immediate check
           const element = context.querySelector(selector);
           if (element && element.offsetParent !== null) {
-            console.log(`Found element: ${selector}`);
-            await delay(300);
-            return element;
+            console.log(`Element found immediately: ${selector}`);
+            resolve(element);
+            return;
           }
-          await delay(100);
+  
+          // Set up mutation observer
+          const observer = new MutationObserver((mutations, obs) => {
+            const element = context.querySelector(selector);
+            if (element && element.offsetParent !== null) {
+              obs.disconnect();
+              console.log(`Element found after mutation: ${selector}`);
+              resolve(element);
+            }
+          });
+  
+          observer.observe(context, {
+            childList: true,
+            subtree: true,
+            attributes: true
+          });
+  
+          // Timeout
+          setTimeout(() => {
+            observer.disconnect();
+            console.log(`Timeout waiting for element: ${selector}`);
+            logPageState();
+            resolve(null);
+          }, timeout);
+        });
+      };
+  
+      // Find button by text using multiple strategies
+      const findNoShowButton = async () => {
+        console.log('Searching for no-show button...');
+        logPageState();
+  
+        // Strategy 1: Direct button search
+        const allButtons = Array.from(document.querySelectorAll('button'));
+        console.log('Found buttons:', allButtons.map(b => ({
+          text: b.textContent,
+          classes: b.className,
+          visible: b.offsetParent !== null
+        })));
+  
+        const noShowButton = allButtons.find(button => 
+          button.textContent.includes('Mark as a no-show') && 
+          button.className.includes('bui-button--secondary') &&
+          button.offsetParent !== null
+        );
+  
+        if (noShowButton) {
+          console.log('Found button via direct search');
+          return noShowButton;
         }
-        console.log(`Timeout waiting for element: ${selector}`);
+  
+        // Strategy 2: XPath search
+        try {
+          const xpath = "//button[contains(@class, 'bui-button--secondary')]//span[contains(text(), 'Mark as a no-show')]/ancestor::button[1]";
+          const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+          const buttonFromXPath = result.singleNodeValue;
+          
+          if (buttonFromXPath && buttonFromXPath.offsetParent !== null) {
+            console.log('Found button via XPath');
+            return buttonFromXPath;
+          }
+        } catch (e) {
+          console.error('XPath search failed:', e);
+        }
+  
         return null;
       };
   
-      // Function to find button by exact text content
-      const findButtonByText = (text) => {
-        const spans = Array.from(document.querySelectorAll('button span'));
-        const targetSpan = spans.find(span => span.textContent.trim() === text);
-        return targetSpan ? targetSpan.closest('button.bui-button--secondary.bui-button--wide') : null;
-      };
-  
       try {
-        // First check for the specific span text
-        const chargedSpan = document.evaluate(
-          "//span[contains(text(), 'You successfully charged the total amount on this card')]",
-          document,
-          null,
-          XPathResult.FIRST_ORDERED_NODE_TYPE,
-          null
-        ).singleNodeValue;
+        console.log('Starting automation process...');
+        console.log('Initial page state:');
+        logPageState();
   
-        if (chargedSpan) {
-          console.log('Found successful charge text');
-          resolve({ 
-            status: 'paid',
-            reason: 'Payment already charged'
+        // Wait for page load
+        if (document.readyState !== 'complete') {
+          console.log('Waiting for page load...');
+          await new Promise(resolve => window.addEventListener('load', resolve));
+        }
+        await delay(2000);
+  
+        // Exclusion checks
+        console.log('Checking for exclusions...');
+        const exclusionElements = await Promise.all([
+          waitForElement('span:contains("You successfully charged the total amount on this card")'),
+          waitForElement('p.res-vcc-expiration'),
+          document.body.innerText.includes('Virtual credit card'),
+          document.body.innerText.includes('The guest has paid for this reservation online')
+        ]);
+  
+        if (exclusionElements.some(el => el)) {
+          console.log('Found exclusion:', exclusionElements);
+          resolve({
+            status: 'skipped',
+            reason: 'Exclusion found'
           });
           return;
         }
   
-        // Then check for other exclusion texts
-        const exclusionTexts = [
-          'Virtual credit card',
-          'Virtual card balance',
-          'The guest has paid for this reservation online'
-        ];
-  
-        const pageText = document.body.innerText;
-        for (const text of exclusionTexts) {
-          if (pageText.includes(text)) {
-            console.log(`Exclusion found: ${text}`);
-            resolve({ 
-              status: text.includes('Virtual') ? 'vcc' : 'paid',
-              reason: `Found text: ${text}`
-            });
-            return;
-          }
-        }
-  
-        // Check for VCC expiration
-        if (document.querySelector('p.res-vcc-expiration')) {
-          console.log('VCC expiration found');
-          resolve({ status: 'vcc', reason: 'VCC expiration found' });
-          return;
-        }
-  
-        // Find no-show button using exact text match
-        console.log('Looking for no-show button...');
-        const noShowButton = findButtonByText('Mark as a no-show');
+        // Find and click no-show button
+        console.log('Searching for no-show button...');
+        const noShowButton = await findNoShowButton();
   
         if (!noShowButton) {
           console.log('No-show button not found');
-          resolve({ status: 'skipped', reason: 'No matching no-show button found' });
+          logPageState();
+          resolve({ status: 'skipped', reason: 'No button found' });
           return;
         }
   
-        // Click the button
-        console.log('Clicking no-show button...');
+        console.log('Found no-show button:', noShowButton.outerHTML);
         noShowButton.click();
-        await delay(1200);
+        await delay(2000);
   
         // Wait for modal
+        console.log('Waiting for modal...');
         const modal = await waitForElement('.bui-modal__content');
         if (!modal) {
-          resolve({ status: 'skipped', reason: 'Modal did not appear after clicking button' });
+          console.log('Modal not found');
+          resolve({ status: 'skipped', reason: 'Modal not found' });
           return;
         }
-        await delay(1000);
   
         // Find and click radio button
-        const radioButton = await waitForElement('input[id^="waive-no-show-fees-yes-"][type="radio"]', modal);
+        console.log('Looking for radio button...');
+        const radioButton = await waitForElement('input[id^="waive-no-show-fees-yes-"]', modal);
         if (!radioButton) {
-          console.log('Radio button not found in modal');
-          resolve({ status: 'skipped', reason: 'Radio button not found in modal' });
+          console.log('Radio button not found');
+          resolve({ status: 'skipped', reason: 'Radio not found' });
           return;
         }
   
         console.log('Clicking radio button...');
         radioButton.click();
         radioButton.checked = true;
-        await delay(800);
+        await delay(1500);
   
         // Find and click confirm button
+        console.log('Looking for confirm button...');
         const confirmButton = await waitForElement('button.bui-button--destructive');
         if (!confirmButton) {
           console.log('Confirm button not found');
-          resolve({ status: 'skipped', reason: 'Confirm button not found in modal' });
+          resolve({ status: 'skipped', reason: 'Confirm not found' });
           return;
         }
   
         console.log('Clicking confirm button...');
         confirmButton.click();
-        await delay(1000);
+        await delay(2000);
   
-        console.log('Successfully processed');
-        resolve({ status: 'processed', reason: 'Successfully processed' });
+        console.log('Process completed successfully');
+        resolve({ status: 'processed', reason: 'Success' });
       } catch (error) {
-        console.error('Error in checkAndAutomate:', error);
+        console.error('Error in automation:', error);
+        logPageState();
         resolve({ status: 'skipped', reason: error.message });
       }
     });
