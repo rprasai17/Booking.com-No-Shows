@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Booking.com No-Show Automator",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Automates no-show processing for Booking.com admin interface",
     "icons": {
         "16": "icons/icon16.png",
@@ -12,7 +12,6 @@
     "permissions": [
         "activeTab",
         "scripting",
-        "sidePanel",
         "tabs"
     ],
     "host_permissions": [
@@ -21,10 +20,14 @@
     "action": {
         "default_title": "No-Show Automator"
     },
-    "side_panel": {
-        "default_path": "sidepanel.html"
-    },
     "background": {
         "service_worker": "background.js"
-    }
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://admin.booking.com/hotel/hoteladmin/extranet_ng/manage/booking.html*"],
+            "js": ["content.js"],
+            "css": ["widget-styles.css"]
+        }
+    ]
 }
