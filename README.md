@@ -51,17 +51,6 @@ Google Chrome Browser
 Access to Booking.com's extranet platform
 Appropriate permissions to mark no-shows
 Files Structure
-Save
-Copy
-1
-2
-3
-4
-5
-6
-7
-8
-9
 ├── manifest.json
 ├── background.js
 ├── content.js
@@ -71,6 +60,7 @@ Copy
     ├── icon32.png
     ├── icon48.png
     └── icon128.png
+
 Permissions Required
 activeTab: To interact with the current tab
 scripting: To inject scripts into web pages
@@ -91,4 +81,4 @@ Support
 For support, please open an issue in the GitHub repository.
 
 Author
-[Your Name]
+[Rupan Prasai]
