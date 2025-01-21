@@ -1,5 +1,3 @@
-I'll help reformat this README to be more visually appealing and well-structured for GitHub using proper Markdown formatting.
-
 # Booking.com No-Shows 🏨
 
 A Chrome extension designed to automate the process of marking no-show reservations on Booking.com's extranet platform. This extension helps property managers efficiently handle multiple no-show bookings while automatically skipping reservations with virtual credit cards or those that have already been paid.
@@ -26,7 +24,7 @@ A Chrome extension designed to automate the process of marking no-show reservati
 
 1. Clone this repository or download the ZIP file
 ```bash
-git clone https://github.com/yourusername/booking-com-no-shows.git
+git clone https://github.com/rprasai17/booking-com-no-shows.git
 ```
 
 2. Navigate to Chrome Extensions
@@ -115,12 +113,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 💬 Support
 
-For support, please [open an issue](https://github.com/yourusername/booking-com-no-shows/issues) in the GitHub repository.
+For support, please [open an issue](https://github.com/rprasai17/booking-com-no-shows/issues) in the GitHub repository.
 
 ## 👤 Author
 
-[Your Name]
+[Rupan Prasai]
 
 ---
 
-**Note:** Remember to update the installation section with your actual GitHub repository URL and add your name to the author section.
