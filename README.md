@@ -117,7 +117,7 @@ For support, please [open an issue](https://github.com/rprasai17/booking-com-no-
 
 ## 👤 Author
 
-[Rupan Prasai]
+Rupan Prasai
 
 ---
 
