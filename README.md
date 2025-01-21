@@ -14,11 +14,8 @@ Real-time progress tracking
 Status updates for processed and skipped reservations
 Installation
 Clone this repository or download the ZIP file
-bash
-Save
-Copy
-1
 git clone https://github.com/yourusername/booking-com-no-shows.git
+
 Open Chrome and navigate to chrome://extensions/
 Enable "Developer mode" in the top right corner
 Click "Load unpacked" and select the extension directory
