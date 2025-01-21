@@ -1,9 +1,8 @@
 Booking.com No-Shows
------------------------------------------------------------------------------------
+
 A Chrome extension designed to automate the process of marking no-show reservations on Booking.com's extranet platform. This extension helps property managers efficiently handle multiple no-show bookings while automatically skipping reservations with virtual credit cards or those that have already been paid.
 
 Features
------------------------------------------------------------------------------------
 
 Automated no-show marking for multiple reservations
 Automatically skips bookings with:
@@ -92,4 +91,4 @@ Support
 For support, please open an issue in the GitHub repository.
 
 Author
-[Rupan Prasai]
+[Your Name]
